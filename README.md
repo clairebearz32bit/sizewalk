@@ -1,8 +1,19 @@
 # About
-Basic file utility to search through a directory and iterate through each file above a threshold.
+Basic file searching utility
+
+# Usage
+```python
+python3 cli.py [--flags]
+```
 
 # TODO
 - [x] Function to find files and sort by size
-- Cleaning utility to remove files
-- [ ] CLI
+- [ ] Basic CLI with ArgParse
+- [ ] Function to remove files
 - [ ] GUI
+- [ ] 
+- [ ] 
+- [ ] 
+- [ ] 
+- [ ] 
+- [ ] 
