@@ -11,9 +11,15 @@ python3 cli.py [--flags]
 - [ ] Basic CLI with ArgParse
 - [ ] Function to remove files
 - [ ] GUI
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
+
+[//]: # (- [ ] )
+
+[//]: # (- [ ] )
+
+[//]: # (- [ ] )
+
+[//]: # (- [ ] )
+
+[//]: # (- [ ] )
+
+[//]: # (- [ ] )
