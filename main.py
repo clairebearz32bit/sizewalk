@@ -18,19 +18,28 @@ class File:
         return f"{self.name}: {self.sizeMB:.1f}MB"
 
 
-"""Get all the files & dirs in path above a size threshold"""
-def search_dir(path, threshold):
+def find_files(path, threshold=10e6):
+    """finds and returns a list with all the files in a directory, sorted by the largest files first
+
+    :parameter path: the full path to the directory
+    :parameter threshold: minimum size in bytes of files to return
+    """
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"The path '{path}' could not be found.")
+
     all_files = list()
 
     for _, dirs, files in os.walk(path):
+        # remove all hidden dirs
         dirs[:] = [i for i in dirs if not i.startswith(".")]
 
-        # is there a way we could optimize this? it's O(2n) rn but is kinda long
-        # maybe i could concat the lists and then it'd just be 1 loop? it's O(2n) either way
         for file in files + dirs:
             file_path = os.path.join(_, file)
             file = Path(file_path)
-            size = file.stat().st_size
+            stat = file.stat()
+
+            size = stat.st_size
+            is_dir = file.is_dir()
 
             if size < threshold:
                 continue
@@ -38,42 +47,14 @@ def search_dir(path, threshold):
             file = File(size, file.name, file_path)
 
             if file not in all_files:
-                all_files.append(File(size, file.name, file_path))
+                all_files.append(File(size, file.name, file_path, is_dir=is_dir))
 
-        # for d in dirs:
-        #     d_path = os.path.join(_, d)
-        #     d = Path(d_path)
-        #     size = d.stat().st_size
-        #
-        #     if size < threshold:
-        #         break
-        #
-        #     d = File(size, d.name, d_path)
-        #
-        #     if d not in all_files:
-        #         all_files.append(File(size, d.name, d_path, is_dir=True))
-
-    # # concat the dirs and files lists
-    # all_files = dirs + files
-    # print(all_files)
-    # # replace all file strings with Path objects
-    # all_files[:] = [Path(os.path.abspath(os.path.join(path, file))) for file in all_files]
-    # # remove hidden dirs and files with sizes below threshold
-    # all_files[:] = [file for file in all_files if not file.name.startswith(".")]
-    # all_files[:] = [file for file in all_files if file.stat().st_size >= threshold]
-    # # replace all Path objects with File objects
-    # all_files[:] = [File(file.stat().st_size, file.name, file.resolve()) for file in all_files]
-    #
-    # # return sorted list of all files with the largest files first
+    # return sorted list of all files with the largest files first
     return sorted(all_files, key=lambda n: n.size, reverse=True)
 
-if __name__ == '__main__':
-    # min. size threshold for files to be included, 10mb by default
-    thresh_mb = 10e6
-    # thresh_mb = 0
-    thresh_mib = pow(2, 20)
 
+if __name__ == '__main__':
     search_path = r"C:\Users\Claire\Documents"
 
-    dirs = search_dir(search_path, thresh_mb)
-    print(dirs)
+    files = find_files(search_path)
+    print(files)
