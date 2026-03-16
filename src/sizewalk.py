@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from math import ceil, log2
 
 
 class File:
@@ -12,10 +13,16 @@ class File:
         # self.size is in bytes,
         self.sizeMB = self.size / 1e6
 
+    # TODO Make this less awful
     def __repr__(self):
-        if self.is_dir:
-            return f"{self.name}/: {self.sizeMB}MB"
-        return f"{self.name}: {self.sizeMB:.1f}MB"
+        prefix = "FILE" if not self.is_dir else "DIR"
+        SIZES = {1: "B", 2: "B", 3: "KB", 4: "KB", 5: "KB", 6: "MB", 7: "MB", 8: "MB", 9: "GB", 10: "GB", 11: "GB"}
+        size = len(str(self.size))
+        size = (size - (size % 3)) - 3
+        suffix = SIZES[size]
+
+
+        return f"{prefix} {self.name}: {self.size/(pow(10, size)):.1f} {suffix}"
 
 
 def find_files(path, threshold=10e6):
@@ -24,31 +31,33 @@ def find_files(path, threshold=10e6):
     :parameter path: the full path to the directory
     :parameter threshold: minimum size in bytes of files to return
     """
-    print(os.path.abspath(path))
     if not os.path.exists(path):
         raise FileNotFoundError(f"The path '{path}' could not be found.")
 
     all_files = list()
 
-    for _, dirs, files in os.walk(path):
+    for root, dirs, files in os.walk(path):
         # remove all hidden dirs
         dirs[:] = [i for i in dirs if not i.startswith(".")]
 
         for file in files + dirs:
-            file_path = os.path.join(_, file)
-            file = Path(file_path)
-            stat = file.stat()
+            try:
+                file_path = os.path.join(root, file)
+                file = Path(file_path)
+                stat = file.stat()
 
-            size = stat.st_size
-            is_dir = file.is_dir()
+                size = stat.st_size
 
-            if size < threshold:
+                if size < threshold:
+                    continue
+
+                file = File(size, file.name, file_path, is_dir=file.is_dir())
+
+                if file not in all_files:
+                    all_files.append(file)
+
+            except FileNotFoundError as fnfe:
                 continue
-
-            file = File(size, file.name, file_path)
-
-            if file not in all_files:
-                all_files.append(File(size, file.name, file_path, is_dir=is_dir))
 
     # return sorted list of all files with the largest files first
     return sorted(all_files, key=lambda n: n.size, reverse=True)
