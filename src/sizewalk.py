@@ -5,11 +5,15 @@ from math import log2, floor
 
 
 def b_to_any(n: int):
+    if n <= pow(2,10):
+        return n, "B"
+
     suffixes = {10: "KB", 20: "MB", 30: "GB", 40: "TB"}
     power = 10 * floor(log2(n) / 10)
     size = (n / pow(2, power))
 
     return size, suffixes[power]
+
 
 class File:
     def __init__(self, size, name, full_path, is_dir=False):
@@ -18,17 +22,12 @@ class File:
         self.size = size
         self.is_dir = is_dir
 
-        # self.size is in bytes,
-        self.sizeMB = self.size / 1e6
+        self.converted_size, self.suffix = b_to_any(self.size)
 
-    # TODO Make this less awful
     def __repr__(self):
-        suffixes = {10: "KB", 20: "MB", 30: "GB", 40: "TB"}
         prefix = "FILE" if not self.is_dir else "DIR"
-        power = 10 * floor(log2(self.size) / 10)
-        size = (self.size / pow(2, power))
 
-        return f"{prefix} {self.name} {power} : {size:.1f} {suffixes[power]}"
+        return f"{prefix} {self.name}: {self.converted_size:.1f} {self.suffix}"
 
 
 def find_files(path, threshold=10e6):
@@ -64,8 +63,8 @@ def find_files(path, threshold=10e6):
                 file = File(size, file.name, file_path, is_dir=file.is_dir())
                 all_files.add(file)
 
-            except FileNotFoundError as fnfe:
-                print(f"File: {file} not found.")
+            except FileNotFoundError:
+                print(f"File '{file}' not found.")
                 continue
 
     # return sorted list of all files with the largest files first

@@ -2,11 +2,13 @@ from sizewalk import find_files, b_to_any
 import time
 
 if __name__ == '__main__':
-    # search_path = r"C:\Users\Claire\PycharmProjects\sizewalk"
-    search_path = r"C:\Users\Claire\Documents"
+    search_path = r"C:\Users\Claire\PycharmProjects\sizewalk"
+    # search_path = r"C:\Users\Claire\Documents"
+
+    thresh = 0
 
     start = time.time()
-    files = find_files(search_path)
+    files = find_files(search_path, threshold=thresh)
     dirs = [d for d in files if d.is_dir]
 
     num_dirs = len(dirs)
