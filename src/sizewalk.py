@@ -1,7 +1,15 @@
 import os
 from pathlib import Path
-from math import ceil, log2
 
+from math import log2, floor
+
+
+def b_to_any(n: int):
+    suffixes = {10: "KB", 20: "MB", 30: "GB", 40: "TB"}
+    power = 10 * floor(log2(n) / 10)
+    size = (n / pow(2, power))
+
+    return size, suffixes[power]
 
 class File:
     def __init__(self, size, name, full_path, is_dir=False):
@@ -15,14 +23,12 @@ class File:
 
     # TODO Make this less awful
     def __repr__(self):
+        suffixes = {10: "KB", 20: "MB", 30: "GB", 40: "TB"}
         prefix = "FILE" if not self.is_dir else "DIR"
-        SIZES = {1: "B", 2: "B", 3: "KB", 4: "KB", 5: "KB", 6: "MB", 7: "MB", 8: "MB", 9: "GB", 10: "GB", 11: "GB"}
-        size = len(str(self.size))
-        size = (size - (size % 3)) - 3
-        suffix = SIZES[size]
+        power = 10 * floor(log2(self.size) / 10)
+        size = (self.size / pow(2, power))
 
-
-        return f"{prefix} {self.name}: {self.size/(pow(10, size)):.1f} {suffix}"
+        return f"{prefix} {self.name} {power} : {size:.1f} {suffixes[power]}"
 
 
 def find_files(path, threshold=10e6):
@@ -34,13 +40,17 @@ def find_files(path, threshold=10e6):
     if not os.path.exists(path):
         raise FileNotFoundError(f"The path '{path}' could not be found.")
 
-    all_files = list()
+    # all_files = list()
+    all_files = set()
 
     for root, dirs, files in os.walk(path):
         # remove all hidden dirs
         dirs[:] = [i for i in dirs if not i.startswith(".")]
 
-        for file in files + dirs:
+        files += dirs
+        files = set(files)
+
+        for file in files:
             try:
                 file_path = os.path.join(root, file)
                 file = Path(file_path)
@@ -52,11 +62,10 @@ def find_files(path, threshold=10e6):
                     continue
 
                 file = File(size, file.name, file_path, is_dir=file.is_dir())
-
-                if file not in all_files:
-                    all_files.append(file)
+                all_files.add(file)
 
             except FileNotFoundError as fnfe:
+                print(f"File: {file} not found.")
                 continue
 
     # return sorted list of all files with the largest files first
