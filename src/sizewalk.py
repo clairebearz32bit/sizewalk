@@ -1,18 +1,26 @@
 import os
 from pathlib import Path
 
-from math import log2, floor
+from math import log2, log10, floor
 
 
-def b_to_any(n: int):
-    if n <= pow(2,10):
+def b_to_any(n: int, use_binary_units=True) -> (float, str):
+    suffixes2 = {10: "KiB", 20: "MiB", 30: "GiB", 40: "TiB"}
+    suffixes10 = {3: "KB", 6: "MB", 9: "GB", 12: "TB"}
+
+    # If n can already be represented in bytes, return itself
+    if n < pow(2, 10) or n < pow(10, 3):
         return n, "B"
 
-    suffixes = {10: "KB", 20: "MB", 30: "GB", 40: "TB"}
-    power = 10 * floor(log2(n) / 10)
-    size = (n / pow(2, power))
+    if use_binary_units:
+        power = 10 * floor(log2(n) / 10)
+        size = n / pow(2, power)
+        return size, suffixes2[power]
 
-    return size, suffixes[power]
+    else:
+        power = 3 * floor(log10(n) / 3)
+        size = n / pow(10, power)
+        return size, suffixes10[power]
 
 
 class File:
